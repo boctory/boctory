@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'gallery_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -9,56 +8,115 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  final ImagePicker _picker = ImagePicker();
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
 
-  Future<void> _pickImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => GalleryScreen(
-            selectedImage: pickedFile,
-          ),
-        ),
-      );
-    }
+  @override
+  void initState() {
+    super.initState();
+
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_fadeController);
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        _fadeController.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
           children: [
-            const Text(
-              'Under the sea!',
-              style: TextStyle(
-                fontFamily: 'Georgia',
-                fontSize: 32,
-                fontStyle: FontStyle.italic,
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.15,
+              left: 0,
+              right: 0,
+              child: Image.asset(
+                'assets/images/cute-jellyfish.png',
+                width: 420,
+                height: 394,
               ),
             ),
-            const SizedBox(height: 30),
-            Image.asset(
-              'assets/images/cute-jellyfish.png',
-              width: 200,
-              height: 200,
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: _pickImage,
-              icon: const Icon(Icons.photo),
-              label: const Text('사진 찾아보기'),
-              style: ElevatedButton.styleFrom(
-                // ignore: deprecated_member_use
-                backgroundColor: Colors.grey.withOpacity(0.3),
-                padding: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.2,
+              left: 0,
+              right: 0,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.blue.withOpacity(0.3),
+                          Colors.purple.withOpacity(0.3),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const GalleryScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.photo_camera,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      label: const Text(
+                        '사진 찾아보기',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
